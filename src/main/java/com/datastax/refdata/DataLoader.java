@@ -13,7 +13,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVReader;
 
@@ -22,6 +23,7 @@ import com.datastax.refdata.model.HistoricData;
 
 public class DataLoader {
 
+	private static Logger logger = LoggerFactory.getLogger(DataLoader.class);
 	private DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
 	private static final CharSequence DAILY_PRICES = "daily_prices";
@@ -52,12 +54,12 @@ public class DataLoader {
 				if (file.getName().contains(DAILY_PRICES)) {
 					this.processDailyPricesFile(file);
 				} else if (file.getName().contains(DIVIDENDS)) {
-					//this.processDividendsFile(file);
+					this.processDividendsFile(file);
 				}
 			} catch (FileNotFoundException e) {
-				Log.warn("Could not process file : " + file.getAbsolutePath(), e);
+				logger.warn("Could not process file : " + file.getAbsolutePath(), e);
 			} catch (IOException e) {
-				Log.warn("Could not process file : " + file.getAbsolutePath(), e);
+				logger.warn("Could not process file : " + file.getAbsolutePath(), e);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -81,7 +83,7 @@ public class DataLoader {
 
 			// Flush after every new symbol
 			if (!symbol.equalsIgnoreCase(lastSymbol) && lastSymbol != null) {
-				Log.info("Flushing " + exchange + "-" + lastSymbol);
+				logger.info("Flushing " + exchange + "-" + lastSymbol);
 
 				this.queueHistoricData.put(new ArrayList<HistoricData>(list));
 				list = new ArrayList<HistoricData>();
@@ -91,7 +93,7 @@ public class DataLoader {
 			try {
 				date = dateFormatter.parse(items[2]);
 			} catch (ParseException e) {
-				Log.warn("Could not parse date " + items[2] + " continuing");
+				logger.warn("Could not parse date " + items[2] + " continuing");
 				continue;
 			}
 			double open = Double.parseDouble(items[3]);
@@ -109,7 +111,7 @@ public class DataLoader {
 		}
 
 		if (exchange != null && lastSymbol != null) {
-			Log.info("Flushing " + exchange + "-" + lastSymbol);
+			logger.info("Flushing " + exchange + "-" + lastSymbol);
 			this.queueHistoricData.put(new ArrayList<HistoricData>(list));
 			list = new ArrayList<HistoricData>();
 		}
@@ -133,7 +135,7 @@ public class DataLoader {
 
 			// Flush after every new symbol
 			if (!symbol.equalsIgnoreCase(lastSymbol) && lastSymbol != null) {
-				Log.info("Flushing Dividend " + exchange + "-" + lastSymbol);
+				logger.info("Flushing Dividend " + exchange + "-" + lastSymbol);
 				this.queueDividend.put(new ArrayList<Dividend>(list));
 				list = new ArrayList<Dividend>();
 			}
@@ -142,7 +144,7 @@ public class DataLoader {
 			try {
 				date = dateFormatter.parse(items[2]);
 			} catch (ParseException e) {
-				Log.warn("Could not parse date " + items[2] + " continuing");
+				logger.warn("Could not parse date " + items[2] + " continuing");
 				continue;
 			}
 			double dividendValue = Double.parseDouble(items[3]);
@@ -154,7 +156,7 @@ public class DataLoader {
 		}
 
 		if (exchange != null && lastSymbol != null) {
-			Log.info("Flushing Dividend " + exchange + "-" + lastSymbol);
+			logger.info("Flushing Dividend " + exchange + "-" + lastSymbol);
 			this.queueDividend.put(new ArrayList<Dividend>(list));
 			list = new ArrayList<Dividend>();
 		}

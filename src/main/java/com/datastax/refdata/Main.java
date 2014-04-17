@@ -7,7 +7,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.mortbay.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.demo.utils.PropertyHelper;
 import com.datastax.demo.utils.Timer;
@@ -15,7 +16,9 @@ import com.datastax.refdata.model.Dividend;
 import com.datastax.refdata.model.HistoricData;
 
 public class Main {
-
+	
+	private static Logger logger = LoggerFactory.getLogger(Main.class);
+	
 	private AtomicLong TOTAL_POINTS = new AtomicLong(0);
 	
 	public Main() {
@@ -44,12 +47,12 @@ public class Main {
 		dataLoader.startProcessingData();
 		
 		while(!queueHistoricData.isEmpty() && !queueDividend.isEmpty() ){
-			Log.info("Messages left to send " + (queueHistoricData.size() + queueDividend.size()));
+			logger.info("Messages left to send " + (queueHistoricData.size() + queueDividend.size()));
 			
 			sleep(1);
 		}		
 		timer.end();
-		Log.info("Data Loading took " + timer.getTimeTakenSeconds() + " secs. Total Points " + dao.getTotalPoints() + " (" + (dao.getTotalPoints()/timer.getTimeTakenSeconds()) + " a sec)");
+		logger.info("Data Loading took " + timer.getTimeTakenSeconds() + " secs. Total Points " + dao.getTotalPoints() + " (" + (dao.getTotalPoints()/timer.getTimeTakenSeconds()) + " a sec)");
 		
 		System.exit(0);
 	}

@@ -1,8 +1,8 @@
-create keyspace datastax_referencedata_demo WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1' };
+create keyspace if not exists datastax_referencedata_demo WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1' };
 
 use datastax_referencedata_demo; 
 
-CREATE TABLE historic_data ( 
+CREATE TABLE if not exists historic_data ( 
 	exchange text,
 	symbol text,
 	date timestamp,
@@ -15,7 +15,7 @@ CREATE TABLE historic_data (
 	PRIMARY KEY ((exchange, symbol), date)
 ) WITH CLUSTERING ORDER BY (date DESC);
 
-CREATE TABLE dividends ( 
+CREATE TABLE if not exists dividends ( 
 	exchange text,
 	symbol text,
 	date timestamp,
@@ -23,7 +23,7 @@ CREATE TABLE dividends (
 	PRIMARY KEY ((exchange, symbol), date)
 ) WITH CLUSTERING ORDER BY (date DESC);
 
-CREATE TABLE exchange_metadata(
+CREATE TABLE if not exists exchange_metadata(
 	exchange text,
 	symbol text,
 	last_updated_date timestamp,
