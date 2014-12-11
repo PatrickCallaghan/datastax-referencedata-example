@@ -54,7 +54,7 @@ public class DataLoader {
 				if (file.getName().contains(DAILY_PRICES)) {
 					this.processDailyPricesFile(file);
 				} else if (file.getName().contains(DIVIDENDS)) {
-					this.processDividendsFile(file);
+					//this.processDividendsFile(file);
 				}
 			} catch (FileNotFoundException e) {
 				logger.warn("Could not process file : " + file.getAbsolutePath(), e);

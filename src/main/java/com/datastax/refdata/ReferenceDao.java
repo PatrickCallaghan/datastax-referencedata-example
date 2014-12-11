@@ -3,6 +3,7 @@ package com.datastax.refdata;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
@@ -15,7 +16,7 @@ import com.datastax.refdata.model.HistoricData;
 
 public class ReferenceDao {
 
-	private long TOTAL_POINTS = 0;
+	private AtomicLong TOTAL_POINTS = new AtomicLong(0);
 	private Session session;
 	private static String keyspaceName = "datastax_referencedata_demo";
 	private static String tableNameHistoric = keyspaceName + ".historic_data";
@@ -73,7 +74,7 @@ public class ReferenceDao {
 				mostRecent = historicData;
 			}
 						
-			TOTAL_POINTS++;			
+			TOTAL_POINTS.incrementAndGet();			
 		}
 
 		//Insert most recent date.
@@ -130,6 +131,6 @@ public class ReferenceDao {
 	}
 	
 	public long getTotalPoints(){
-		return TOTAL_POINTS;
+		return TOTAL_POINTS.get();
 	}
 }

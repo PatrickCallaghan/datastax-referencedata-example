@@ -8,6 +8,7 @@ public class Dividend {
 	private String symbol;
 	private Date date;
 	private double dividend;
+	
 	public Dividend(String exchange, String symbol, Date date, double dividend) {
 		super();
 		this.exchange = exchange;
