@@ -2,19 +2,30 @@ package com.datastax.refdata;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.driver.core.PreparedStatement;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.ResultSetFuture;
+import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.SimpleStatement;
+import com.datastax.driver.core.Statement;
 import com.datastax.refdata.model.Dividend;
+import com.datastax.refdata.model.ExchangeSymbol;
 import com.datastax.refdata.model.HistoricData;
 
 public class ReferenceDao {
+	
+	private static Logger logger = LoggerFactory.getLogger(ReferenceDao.class);
 
 	private AtomicLong TOTAL_POINTS = new AtomicLong(0);
 	private Session session;
@@ -29,10 +40,15 @@ public class ReferenceDao {
 			+ " (exchange,symbol,date,dividend) values (?,?,?,?);";
 	private static final String INSERT_INTO_METADATA = "Insert into " + tableNameMetaData
 			+ " (exchange,symbol,last_updated_date) values (?,?,?);";
+	
+	
+	private static final String SELECT_ALL = "select * from " + tableNameHistoric;
+	private static final String SELECT_ALL_BY_KEY = "select * from " + tableNameHistoric + " where exchange=? and symbol=?";
 
 	private PreparedStatement insertStmtHistoric;
 	private PreparedStatement insertStmtDividend;
 	private PreparedStatement insertStmtMetaData;
+	private PreparedStatement selectStmtByKey;
 
 	public ReferenceDao(String[] contactPoints) {
 
@@ -42,6 +58,7 @@ public class ReferenceDao {
 		this.insertStmtHistoric = session.prepare(INSERT_INTO_HISTORIC);
 		this.insertStmtDividend = session.prepare(INSERT_INTO_DIVIDENDS);
 		this.insertStmtMetaData = session.prepare(INSERT_INTO_METADATA);
+		this.selectStmtByKey = session.prepare(SELECT_ALL_BY_KEY);
 		
 		this.insertStmtHistoric.setConsistencyLevel(ConsistencyLevel.ONE);
 		this.insertStmtDividend.setConsistencyLevel(ConsistencyLevel.ONE);
@@ -130,7 +147,30 @@ public class ReferenceDao {
 		return;
 	}
 	
+	public void selectAllHistoricData(int fetchSize){
+		Statement stmt = new SimpleStatement(SELECT_ALL);
+		stmt.setFetchSize(fetchSize);
+		ResultSet rs = session.execute(stmt);
+		
+		Iterator<Row> iterator = rs.iterator();
+		
+		while (iterator.hasNext()){
+			iterator.next().getDouble("close");
+		}		
+	}
+	
 	public long getTotalPoints(){
 		return TOTAL_POINTS.get();
 	}
+
+	public void selectAllHistoricData(ExchangeSymbol exchangeSymbol) {
+		BoundStatement bound = new BoundStatement(selectStmtByKey);
+		
+		ResultSetFuture results = session.executeAsync(bound.bind(exchangeSymbol.getExchange(), exchangeSymbol.getSymbol())); 
+		
+		for (Row row : results.getUninterruptibly()) {			
+			row.getString("symbol");			
+		}
+	}
+
 }

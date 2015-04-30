@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import au.com.bytecode.opencsv.CSVReader;
 
 import com.datastax.refdata.model.Dividend;
+import com.datastax.refdata.model.ExchangeSymbol;
 import com.datastax.refdata.model.HistoricData;
 
 public class DataLoader {
@@ -162,4 +163,64 @@ public class DataLoader {
 		}
 		reader.close();
 	}
+	
+	public List<ExchangeSymbol> getExchangeSymbols() {
+
+		// Process all the files from the csv directory
+		File cvsDir = new File(".", "src/main/resources/csv");
+
+		File[] files = cvsDir.listFiles(new FileFilter() {
+			public boolean accept(File file) {
+				return file.isFile();
+			}
+		});
+
+		List<ExchangeSymbol> exchangeSymbols = new ArrayList<ExchangeSymbol>();
+		
+		for (File file : files) {
+
+			try {
+				if (file.getName().contains(DAILY_PRICES)) {
+					exchangeSymbols.addAll(this.getExchangeSymbols(file));
+				} else if (file.getName().contains(DIVIDENDS)) {
+					//this.processDividendsFile(file);
+				}
+			} catch (FileNotFoundException e) {
+				logger.warn("Could not process file : " + file.getAbsolutePath(), e);
+			} catch (IOException e) {
+				logger.warn("Could not process file : " + file.getAbsolutePath(), e);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return exchangeSymbols;		
+	}
+
+	
+	public List<ExchangeSymbol> getExchangeSymbols(File file) throws IOException, InterruptedException {
+
+		CSVReader reader = new CSVReader(new FileReader(file.getAbsolutePath()), CSVReader.DEFAULT_SEPARATOR,
+				CSVReader.DEFAULT_QUOTE_CHARACTER, 1);
+		String[] items = null;
+		String exchange = null;
+		String symbol = null;
+		String lastSymbol = null;
+
+		List<ExchangeSymbol> list = new ArrayList<ExchangeSymbol>();
+
+		while ((items = reader.readNext()) != null) {
+
+			exchange = items[0].trim();
+			symbol = items[1].trim();
+			
+			if (!symbol.equalsIgnoreCase(lastSymbol)) {
+				list.add(new ExchangeSymbol(exchange, symbol));
+				lastSymbol = symbol;
+			}			
+		}
+
+		reader.close();
+		return list;
+	}
+
 }

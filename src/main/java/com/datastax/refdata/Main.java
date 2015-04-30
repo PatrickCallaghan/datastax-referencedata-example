@@ -24,7 +24,7 @@ public class Main {
 	public Main() {
 
 		String contactPointsStr = PropertyHelper.getProperty("contactPoints", "localhost");
-		String noOfThreadsStr = PropertyHelper.getProperty("noOfThreads", "5");
+		String noOfThreadsStr = PropertyHelper.getProperty("noOfThreads", "2");
 		
 		ReferenceDao dao = new ReferenceDao(contactPointsStr.split(","));
 		
