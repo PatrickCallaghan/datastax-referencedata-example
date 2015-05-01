@@ -64,7 +64,7 @@ public class RunQueries {
 		}
 		timer.end();
 		
-		logger.info("Select * by key took : " + timer.getTimeTakenSeconds() + "secs for " + exchangeSymbols.size() + " exchangeSymbols");
+		logger.info("Select * by key took : " + timer.getTimeTakenSeconds() + "secs for " + dao.getRequestCount() + " requests	");
 		System.exit(0);
 	}
 

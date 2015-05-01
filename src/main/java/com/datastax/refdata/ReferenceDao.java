@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
@@ -43,12 +44,14 @@ public class ReferenceDao {
 	
 	
 	private static final String SELECT_ALL = "select * from " + tableNameHistoric;
-	private static final String SELECT_ALL_BY_KEY = "select * from " + tableNameHistoric + " where exchange=? and symbol=?";
+	private static final String SELECT_ALL_BY_KEY = "select * from " + tableNameHistoric + " where exchange=? and symbol=? and date > '2009-10-29'";
 
 	private PreparedStatement insertStmtHistoric;
 	private PreparedStatement insertStmtDividend;
 	private PreparedStatement insertStmtMetaData;
 	private PreparedStatement selectStmtByKey;
+
+	private AtomicInteger requestCount = new AtomicInteger(0);
 
 	public ReferenceDao(String[] contactPoints) {
 
@@ -162,8 +165,14 @@ public class ReferenceDao {
 	public long getTotalPoints(){
 		return TOTAL_POINTS.get();
 	}
+	
+	public int getRequestCount(){
+		return this.requestCount.get();
+	}
 
 	public void selectAllHistoricData(ExchangeSymbol exchangeSymbol) {
+		requestCount.incrementAndGet(); 
+		
 		BoundStatement bound = new BoundStatement(selectStmtByKey);
 		
 		ResultSetFuture results = session.executeAsync(bound.bind(exchangeSymbol.getExchange(), exchangeSymbol.getSymbol())); 
